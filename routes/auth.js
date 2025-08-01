@@ -1,77 +1,73 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/UserAuth');
+const UserProfile = require('../models/UserProfile');
+const Technician = require('../models/Technician');
+const { v4: uuidv4 } = require('uuid');
 
-// REGISTER
-// router.post('/register', async (req, res) => {
-//   const { name, email, password, role } = req.body;
-//   try {
-//     const existing = await User.findOne({ email });
-//     if (existing) return res.status(400).json({ error: 'User already exists' });
-
-//     const newUser = new User({ name, email, password, role });
-//     await newUser.save();
-
-//     res.status(201).json({ message: 'User registered successfully' });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: 'Registration failed' });
-//   }
-// });
-
-const UserProfile = require('../models/Userprofile'); // import profile model
-
-// REGISTER
+// POST /api/register
 router.post('/register', async (req, res) => {
-  const { name, email, password, role, address, phone, location } = req.body;
-
   try {
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ error: 'User already exists' });
+    const { email, password, role, contact, location, address, name } = req.body;
 
-    // Create auth user
-    const newUser = new User({ name, email, password, role });
-    const savedUser = await newUser.save();
-
-    // Create user profile
-    if (role === 'user') {
-      const profile = new UserProfile({
-        userId: savedUser._id,
-        address,
-        phone,
-        location
-      });
-      await profile.save();
+    if (!email || !password || !role || !contact || !location || !address || !name) {
+      return res.status(400).json({ message: 'All fields are required.' });
     }
 
-    res.status(201).json({ message: 'User registered successfully' });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(409).json({ message: 'User already exists.' });
+
+    // Generate custom userId
+    const prefix = role === 'technician' ? 'T' : role === 'admin' ? 'A' : 'U';
+    const userId = `${prefix}${uuidv4().slice(0, 6).toUpperCase()}`;
+
+    // Create User
+    const newUser = await User.create({ userId, email, password, role });
+
+    // Create role-specific profile
+    if (role === 'user') {
+      await UserProfile.create({ userId, name, contact, location, address });
+    } else if (role === 'technician') {
+      await Technician.create({ userId, name, contact, location, skills: [], assignedTickets: 0 });
+    }
+
+    return res.status(201).json({ message: 'User registered successfully', userId });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Registration failed' });
+    console.error('Registration error:', err);
+    return res.status(500).json({ message: 'Server error during registration' });
   }
 });
-
-
-// LOGIN
+// POST /api/login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    const { email, password } = req.body;
+
+    // Check required fields
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
     }
-    res.status(200).json({
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: 'Invalid email or password.' });
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid email or password.' });
+
+    // Decide redirect route
+    let redirectTo = '/';
+    if (user.role === 'user') redirectTo = '/user';
+    else if (user.role === 'technician') redirectTo = '/technician';
+    else if (user.role === 'admin') redirectTo = '/admin';
+
+    return res.status(200).json({
       message: 'Login successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      userId: user.userId,
+      role: user.role,
+      redirect: redirectTo
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Login error:', err);
+    return res.status(500).json({ message: 'Server error during login' });
   }
 });
 
