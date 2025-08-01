@@ -5,6 +5,8 @@ const cors = require('cors');
 require('dotenv').config();
 const uploadRoute = require('./routes/uploadTicket');
 const ticketRoute = require('./routes/updateTicket');
+const authRoutes = require('./routes/auth');
+
 
 const app = express();
 
@@ -16,6 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // serve i
 // Routes
 app.use('/api', uploadRoute); // POST /api/upload
 app.use('/api', ticketRoute); // PUT /api/ticket/:id/resolve
+app.use('/api/auth', authRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI).then(() => {
@@ -25,7 +28,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
