@@ -8,9 +8,9 @@ const { v4: uuidv4 } = require('uuid');
 // POST /api/register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, role, contact, location, address, name } = req.body;
+    const { email, password, role, phone, location, address, name } = req.body;
 
-    if (!email || !password || !role || !contact || !location || !address || !name) {
+    if (!email || !password || !role || !phone || !location || !address || !name) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -26,9 +26,9 @@ router.post('/register', async (req, res) => {
 
     // Create role-specific profile
     if (role === 'user') {
-      await UserProfile.create({ userId, name, contact, location, address });
+      await UserProfile.create({ userId, name, phone, location, address });
     } else if (role === 'technician') {
-      await Technician.create({ userId, name, contact, location, skills: [], assignedTickets: 0 });
+      await Technician.create({ userId, name, phone, location, skills: [], assignedTickets: 0 });
     }
 
     return res.status(201).json({ message: 'User registered successfully', userId });

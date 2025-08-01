@@ -42,11 +42,22 @@ router.post('/upload', upload.single('image'), async (req, res) => {
       { headers: formData.getHeaders() }
     );
 
-    const issueType = fastApiResponse.data.issue_type;
-    res.status(200).json({
-      message: 'Prediction successful',
+    const issueType = fastApiResponse.data.class;
+    // Save ticket to MongoDB
+    const newTicket = new Ticket({
+      userId,
+      imageUrl: imagePath,
       issueType,
-      imageUrl: imagePath // send this so we can reuse in next step
+      status: 'Open',
+      assignedTechnicianId: null // Initially no technician assigned
+    });
+    await newTicket.save();
+    // Respond
+    res.status(200).json({
+      message: 'Prediction successful and ticket created',
+      issueType, // this should now be properly included
+      ticketId: newTicket._id,
+      imageUrl: imagePath
     });
 
   } catch (error) {

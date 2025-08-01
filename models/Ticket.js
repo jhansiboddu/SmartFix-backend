@@ -1,13 +1,12 @@
+// models/Ticket.js
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-  userId: mongoose.Schema.Types.ObjectId,
+  userId: { type: String, ref: 'User', required: true },
   imageUrl: String,
   issueType: String,
   status: { type: String, enum: ['Open', 'Assigned', 'Resolved'], default: 'Open' },
-  assignedTechnicianId: { type: mongoose.Schema.Types.ObjectId, ref: 'Technician' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  assignedTechnicianId: { type: String, ref: 'Technician' }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Ticket', ticketSchema);

@@ -5,9 +5,9 @@ const technicianSchema = new mongoose.Schema({
   name: String,
   contact: String,
   location: String,
-  skills: [String], // e.g., ["Plumbing", "Electrical"]
+  skill: { type: String, required: true }, // Skill or expertise of the technician
   assignedTickets: { type: Number, default: 0 },
-  currentStatus: { type: String, enum: ['Available', 'Busy'], default: 'Available' }
+  isAvailable: { type: Boolean, default: true }, // Indicates if technician is available for new ticket
 });
 
 module.exports = mongoose.model('Technician', technicianSchema);

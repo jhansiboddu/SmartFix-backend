@@ -6,7 +6,7 @@ const userProfileSchema = new mongoose.Schema({
   name: String,
   address: String,
   location: String,
-  contact: String,
+  phone: String,
   // more fields as needed...
 });
 
