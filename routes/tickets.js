@@ -19,6 +19,16 @@ router.get('/user/:userId', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+router.get('/technician/:userId/tickets', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const tickets = await Ticket.find({ assignedTechnician: userId }); // assuming assignedTechnician stores userId
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving tickets', error: err.message });
+  }
+});
 // PATCH /api/tickets/:ticketId/status
 router.patch('/:ticketId/status', async (req, res) => {
   try {

@@ -7,7 +7,8 @@ const uploadRoute = require('./routes/uploadTicket');
 const ticketRoute = require('./routes/updateTicket');
 const authRoutes = require('./routes/auth');
 const ticketRoutes = require('./routes/tickets');
-const notificationsRoute = require('./routes/notifications');
+// const notificationsRoute = require('./routes/notification');
+const technicianRoutes = require('./routes/technician');
 const http = require('http');
 const { initSocket } = require('./socket');
 
@@ -24,7 +25,8 @@ app.use('/api', uploadRoute); // POST /api/upload
 app.use('/api', ticketRoute); // PUT /api/ticket/:id/resolve
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
-app.use('/api/notifications', notificationsRoute);
+app.use('/api/technicians', technicianRoutes);
+// app.use('/api/notifications', notificationsRoute);
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI).then(() => {
   console.log('✅ MongoDB connected to SmartFix');
