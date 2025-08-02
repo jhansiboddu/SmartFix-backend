@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Technician = require('../models/Technician'); // Update path
 const Ticket = require('../models/Ticket');         // Update path
+const createNotification = require('../utils/createNotification');
 
 router.post('/assign-technician', async (req, res) => {
   try {
@@ -37,7 +38,12 @@ router.post('/assign-technician', async (req, res) => {
     technician.isAvailable = false;
     technician.assignedTickets = (technician.assignedTickets || 0) + 1;
     await technician.save();
-
+    await createNotification(
+      technician._id, // or technician.userId if that's how you refer
+      'New Ticket Assigned',
+      `You've been assigned a new ticket for ${ticket.issueType}`,
+      `/tickets/${ticket._id}` // optional link to open ticket
+    );
     res.status(200).json({
       message: 'Technician assigned successfully',
       ticketId: ticket._id,
